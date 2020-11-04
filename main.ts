@@ -119,53 +119,53 @@ function fail(): never {
     return error('Error');
 }
 
-class Person {
-    //public name:string;
-    //private age:number;
-    //protected gender:string;
-    //skills:string[];
-    static code = 100;
+//class Person {
+//    //public name:string;
+//    //private age:number;
+//    //protected gender:string;
+//    //skills:string[];
+//    static code = 100;
+//
+//    constructor(
+//        public name:string,
+//        protected gender:string,
+//        private age:number,
+//        public skills:string[]) { }
+//
+//    public getName(): string {
+//        return this.name;
+//    }
+//
+//    getAge(): number {
+//        return this.age;
+//    }
+//    getGender(): string {
+//        return this.gender;
+//    }
+//}
 
-    constructor(
-        public name:string,
-        protected gender:string,
-        private age:number,
-        public skills:string[]) { }
+//class Developer extends Person {
+//    constructor(name:string, gender: string) {
+//        super(name, gender, 25, ['html', 'css', 'js']);
+//    }
+//
+//    getGender(): string {
+//        return this.toUpper();
+//    }
+//
+//    private toUpper() {
+//        return this.gender.toUpperCase();
+//    }
+//}
 
-    public getName(): string {
-        return this.name;
-    }
+//const person  = new Person('John', 25, 'male', ['html', 'css', 'js']);
 
-    getAge(): number {
-        return this.age;
-    }
-    getGender(): string {
-        return this.gender;
-    }
-}
+//console.log(person);
+//console.log(person.getName());
+//console.log(person.getAge());
+//console.log(person.getGender());
 
-class Developer extends Person {
-    constructor(name:string, gender: string) {
-        super(name, gender, 25, ['html', 'css', 'js']);
-    }
-
-    getGender(): string {
-        return this.toUpper();
-    }
-
-    private toUpper() {
-        return this.gender.toUpperCase();
-    }
-}
-
-const person  = new Person('John', 25, 'male', ['html', 'css', 'js']);
-
-console.log(person);
-console.log(person.getName());
-console.log(person.getAge());
-console.log(person.getGender());
-
-const developer  = new Developer('Bobi', 'female');
+//const developer  = new Developer('Bobi', 'female');
 
 //абстрактные классы - заготовки
 abstract class Phone {
@@ -278,7 +278,7 @@ class Rectangle implements Shape {
     printArea() {
         const area:number = this.height * this.width;
 
-        console.log(`Area of ${this.name} is ${this.area}`)
+        console.log(`Area of ${this.name} is ${area}`)
     }
 }
 
@@ -293,8 +293,178 @@ class Circle implements Shape {
     printArea() {
         const area:number = Math.PI * Math.pow(this.radius, 2);
 
-        console.log(`Area of ${this.name} is ${this.area}`)
+        console.log(`Area of ${this.name} is ${area}`)
     }
 }
 const circle = new Circle(10);
 circle.printArea();
+
+//дженерики - обощения
+
+function getData<T>(data:T): T {
+    return data;
+}
+
+console.log(getData('any string'));
+console.log(getData(10));
+
+const newGetData: <T>(d:T) => T = getData;
+console.log(newGetData('any string').length);
+
+class Multiply<T extends number | string> {
+    constructor(private a:T, private b:T) {  }
+
+    public getResult():number {
+        return +this.a * +this.b;
+    }
+}
+
+const m = new Multiply(4, 5);
+
+console.log('res', m.getResult());
+
+const mNum = new Multiply<number>(4, 5);
+const mStr = new Multiply<string>('4', '5');
+
+
+//декоратор - специальная функция, которая пишется перед классами, можно писать и перед свойствами и методами,
+// обозначается @, конструктор становится доступен в параметре той функции к которой мы его привязали
+
+function consolLog(constr:Function) {
+    console.log(constr);
+}
+
+//если нужно передать параметры, то создаем функцию обёртку
+function conditionLog(flag:boolean):any {
+    return flag ? consolLog : null;
+}
+
+@conditionLog(true) //работает как функция если передаем параметр
+class PersonN {
+    constructor(public name: string, public age:number) {
+        console.log('Hello from Person constructor');
+    }
+}
+
+//экземпляр
+const prsn = new PersonN('John', 25);
+
+function addGetter(constr: Function) {
+    constr.prototype.getInfo = function () {
+        const p = document.createElement('p');
+
+        p.innerHTML = `${JSON.stringify((this))}<br>
+            Имя: ${this.name}<br>
+            Возраст: ${this.age}<br>
+            Пол: ${this.gender}<br>
+            Скиллы: ${this.skills}<br>
+        `;
+
+        document.body.append(p);
+    }
+}
+
+@addGetter //получили прототип
+class Developer {
+    constructor(public name:string,
+                public age:number,
+                public gender:string,
+                public skills:string[]
+    ) {}
+
+    //переносим данный метод в декоратор
+    //getInfo(): void {
+    //    const p = document.createElement('p');
+//
+    //    p.innerHTML = `${JSON.stringify((this))}<br>
+    //        Имя: ${this.name}<br>
+    //        Возраст: ${this.age}<br>
+    //        Пол: ${this.gender}<br>
+    //        Скиллы: ${this.skills}<br>
+    //    `;
+//
+    //    document.body.append(p);
+    //}
+}
+
+const developer = new Developer('John', 25, 'male', ['HTML', 'CSS', 'JS']);
+
+console.log('developer', developer);
+(<any>developer).getInfo();
+
+
+function override(label:string) {
+    return function (target:any, key:string) {
+        //console.log('override -> target', target); //это конструктор
+        //console.log('override -> key', key); //это ключ
+
+        Object.defineProperty(target, key, {
+            configurable: false,
+            get: () => label,
+            set: (value) => {}
+        })
+    };
+}
+
+
+class Test {
+    @override('Hello world')
+    name: string = 'Any string';
+}
+
+const t = new Test();
+console.log(t.name);
+
+
+function readOnly(target:any, key:string) {
+    Object.defineProperty(target, key, {writable: false});
+}
+
+class Test2 {
+    @readOnly
+    name: string = 'Any string';
+}
+
+const t2 = new Test2();
+console.log(t2.name);
+
+//t2.name = 'Ivan name';
+//console.log(t2.name);
+// при помощи декораторов мы можем гибко переобпределять и настраивать классы, в ангуляре реализовано это в бибилиотеке
+
+//хелперы
+function isEmpty(d:any): boolean {
+    return  !d;
+} //проверка на наличие значения
+
+console.log(isEmpty(''));
+console.log(isEmpty('str'));
+
+//проверка на undefined
+function isUndefined(d:any): boolean {
+    return typeof d === 'undefined';
+}
+
+console.log(isUndefined(10));
+console.log(isUndefined('str'));
+console.log(isUndefined(undefined));
+console.log(isUndefined(null));
+
+const PI = Math.PI;
+const EXP = Math.E;
+
+//если нам нужно переиспользовать имя, есть namespace - специализированные именные области
+namespace Util {
+    function isEmpty(d:any): boolean {
+        return  !d;
+    }
+
+    function isUndefined(d:any): boolean {
+        return typeof d === 'undefined';
+    }
+
+    export const PI = Math.PI;
+    const EXP = Math.E;
+}
+
+console.log(Util.PI);
